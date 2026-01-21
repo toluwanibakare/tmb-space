@@ -1,7 +1,11 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-export const LoadingScreen = ({ onLoadingComplete, }: { onLoadingComplete: () => void; }) => {
+export const LoadingScreen = ({
+  onLoadingComplete,
+}: {
+  onLoadingComplete: () => void;
+}) => {
   const [showLoader, setShowLoader] = useState(true);
   const [zoomStart, setZoomStart] = useState(false);
 
@@ -67,24 +71,38 @@ export const LoadingScreen = ({ onLoadingComplete, }: { onLoadingComplete: () =>
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
-      style={{ background: "radial-gradient(circle, #1a1a1a 0%, #000000 100%)" }}
+      style={{
+        background: "white",
+      }}
       variants={containerVariants}
       initial="initial"
       exit="exit"
     >
+      {/* Background adapts to dark mode */}
+      <style>
+        {`
+          @media (prefers-color-scheme: dark) {
+            .loading-screen-bg {
+              background: #1a1a1a;
+            }
+          }
+        `}
+      </style>
+
       <motion.div
-        className="relative w-full h-full flex items-center justify-center"
+        className="loading-screen-bg relative w-full h-full flex items-center justify-center"
         variants={zoomVariant}
         initial="initial"
         animate={zoomStart ? "zooming" : "initial"}
       >
         {/* Rolling Ball */}
         <motion.div
-          className="absolute rounded-full bg-white"
+          className="absolute rounded-full"
           style={{
             width: "40px",
             height: "40px",
-            filter: "drop-shadow(0 0 20px rgba(255, 255, 255, 0.6))",
+            backgroundColor: "#3A86FF", // your primary color
+            filter: "drop-shadow(0 0 20px rgba(58, 134, 255, 0.6))",
           }}
           variants={ballVariants}
           initial="initial"
@@ -96,7 +114,7 @@ export const LoadingScreen = ({ onLoadingComplete, }: { onLoadingComplete: () =>
           {"I AM TMB".split("").map((char, i, arr) => (
             <motion.span
               key={i}
-              className="text-6xl font-bold text-white tracking-widest"
+              className="text-6xl font-bold text-black dark:text-white tracking-widest"
               variants={textVariants}
               initial="initial"
               animate="animate"

@@ -37,7 +37,7 @@ const projects: Project[] = [
     stack: ['TypeScript', 'CSS', 'PLpgSQL', 'Supabase',],
     type: 'web',
     year: '2025',
-    github: 'https://github.com/tmb101tech/edu-ai-app',
+    github: 'https://github.com/toluwanibakare/edu-ai-app',
     live: 'https://eduai-app.netlify.app/',
     image: project1
   },
@@ -49,7 +49,7 @@ const projects: Project[] = [
     stack: ['TypeScript', 'JavaScript', 'CSS', 'Next.js'],
     type: 'web',
     year: '2025',
-    github: 'https://github.com/tmb101tech/KreaAI-clone',
+    github: 'https://github.com/toluwanibakare/KreaAI-clone',
     live: 'https://krea-aiclone.netlify.app/',
     image: project2
   },
@@ -61,7 +61,7 @@ const projects: Project[] = [
     stack: ['HTML', 'JavaScript', 'CSS', 'Open-Meteo API'],
     type: 'web',
     year: '2025',
-    github: 'https://github.com/tmb101tech/Weather-app',
+    github: 'https://github.com/toluwanibakare/Weather-app',
     live: 'https://universal-weather-forcast.netlify.app/',
     image: project3
   },
@@ -73,7 +73,7 @@ const projects: Project[] = [
     stack: ['Next.js', 'TailwindCSS', 'Canva'],
     type: 'web',
     year: '2024',
-    github: 'https://github.com/tmb101tech/WIPS-Certificate-Generator',
+    github: 'https://github.com/toluwanibakare/WIPS-Certificate-Generator',
     live: 'https://wips-certificate-generator.vercel.app/',
     image: project4
   },
@@ -82,10 +82,10 @@ const projects: Project[] = [
     category: 'Web Development',
     subcategory: 'Client',
     description: 'Responsive website for OAK Global International Solutions Ltd, showcasing their services and contact information.',
-    stack: ['React', 'TailwindCSS', 'Supabase'],
+    stack: ['HTML', 'TailwindCSS', 'JavaScript', 'Node Js', 'MySql'],
     type: 'web',
     year: '2025',
-    github: 'https://github.com/tmb101tech/oak-global',
+    github: 'https://github.com/toluwanibakare/oak-global',
     live: 'https://oak-gloabal.com.ng/',
     image: project5
   },
@@ -101,15 +101,15 @@ const projects: Project[] = [
     image: project6
   },
   {
-    title: 'My first Landing Page',
+    title: 'Interior Design Website ',
     category: 'Web Development',
-    subcategory: 'Personal',
-    description: 'The first landing page I built when I started learning web development.',
-    stack: ['HTML', 'CSS'],
+    subcategory: 'Client',
+    description: 'Fully built website for an interior design brand showcasing services and portfolio.',
+    stack: ['HTML', 'TailwindCSS', 'JavaScript', 'TypeScript', 'MySql', 'Node Js'],
     type: 'web',
-    year: '2020',
-    github: 'https://github.com/tmb101tech/first-web-project',
-    live: 'https://firstweb-project.netlify.app/',
+    year: '2026',
+    github: 'https://github.com/toluwanibakare/ademaison',
+    live: 'https://ademaisoninteriors.com',
     image: project7
   },
   {
@@ -120,7 +120,7 @@ const projects: Project[] = [
     stack: ['HTMl', 'CSS', 'JavaScript'],
     type: 'web',
     year: '2021',
-    github: 'https://github.com/tmb101tech/Win-7-calculator-clone',
+    github: 'https://github.com/toluwanibakare/Win-7-calculator-clone',
     live: 'https://win-7-calc-clone.netlify.app/',
     image: project8
   },

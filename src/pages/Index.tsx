@@ -30,10 +30,14 @@ interface Review {
   role?: string;
 }
 
+
 const Index = () => {
   const { toast } = useToast();
+
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
+
 
   useEffect(() => {
     const fetchRecentReviews = async () => {
@@ -427,13 +431,17 @@ const Index = () => {
           <p className="text-muted-foreground font-body mb-8">
             Get tips, insights, and strategies to help your business stand out online. Stay updated with the latest in web development and digital branding.
           </p>
+
           <form
             className="flex flex-col sm:flex-row gap-4"
             onSubmit={async (e) => {
               e.preventDefault();
-              const email = (e.currentTarget.elements[0] as HTMLInputElement).value?.trim();
-              if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                toast({ title: 'Invalid email', description: 'Please enter a valid email address', variant: 'destructive' });
+              if (!newsletterEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newsletterEmail)) {
+                toast({
+                  title: 'Invalid email',
+                  description: 'Please enter a valid email address',
+                  variant: 'destructive',
+                });
                 return;
               }
 
@@ -442,15 +450,24 @@ const Index = () => {
                 const res = await fetch(`${API_BASE}/api/newsletter`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email }),
+                  body: JSON.stringify({ email: newsletterEmail }),
                 });
                 const json = await res.json();
                 if (!res.ok) throw new Error(json.error || 'Subscription failed');
-                toast({ title: 'Subscribed', description: 'Thanks — you have been added to the list!' });
-                (e.currentTarget.elements[0] as HTMLInputElement).value = '';
+
+                toast({
+                  title: 'Subscribed',
+                  description: 'Thanks — you have been added to the list!',
+                });
+
+                setNewsletterEmail('');
               } catch (err: any) {
                 console.error(err);
-                toast({ title: 'Subscription failed', description: err.message || 'Please try again later', variant: 'destructive' });
+                toast({
+                  title: 'Subscription failed',
+                  description: err.message || 'Please try again later',
+                  variant: 'destructive',
+                });
               } finally {
                 setNewsletterLoading(false);
               }
@@ -461,17 +478,39 @@ const Index = () => {
               placeholder="Enter your email"
               className="flex-1"
               required
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
               name="newsletterEmail"
             />
             <Button type="submit" size="lg" className="glow-ring" disabled={newsletterLoading}>
               {newsletterLoading ? 'Subscribing...' : 'Subscribe'}
             </Button>
           </form>
-          <p className="text-xs text-muted-foreground mt-4">
+          <p className="text-xs text-muted-foreground mt-6">
             Contact: mosesbakare48@gmail.com
           </p>
+
+          {/* Telegram Community */}
+          <div className="mt-10 pt-8 border-t border-white/10">
+            <h3 className="text-xl font-heading font-semibold mb-2">
+              Join My Telegram Community
+            </h3>
+            <p className="text-muted-foreground font-body mb-6">
+              Get real time updates, practical tips, insights, and behind the scenes content on web development, branding, and online growth.
+            </p>
+            <a
+              href="https://t.me/next_level_circle"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button size="lg" variant="outline" className="glass-effect">
+                Join Telegram Community
+              </Button>
+            </a>
+          </div>
         </motion.div>
       </section>
+
     </div>
   );
 };

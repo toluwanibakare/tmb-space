@@ -24,7 +24,7 @@ transporter.verify().then(() => {
 
 async function sendMail({ to, subject, html, text }) {
   if (!to) throw new Error('`to` is required for sendMail');
-  const fromAddress = process.env.CONTACT_EMAIL || process.env.SMTP_USER || 'contact@tmb.it.com';
+  const fromAddress = process.env.CONTACT_EMAIL || process.env.SMTP_USER || 'mosesbakare48@gmail.com';
   try {
     const info = await transporter.sendMail({
       from: `${fromAddress}`,
