@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -39,40 +40,18 @@ export const SessionBooking = () => {
 
   useEffect(() => {
     fetchBookings();
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('bookings-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'bookings'
-        },
-        (payload) => {
-          console.log('New booking received:', payload);
-          // Add the new booking to the list
-          setBookedSlots((prev) => [...prev, payload.new as Booking]);
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscription on unmount
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // no realtime channel when using the backend; frontend will refresh after booking
+    // Cleanup: nothing to unsubscribe
   }, []);
 
   const fetchBookings = async () => {
-    const { data, error } = await supabase
-      .from('bookings')
-      .select('booking_date, booking_time');
-
-    if (error) {
-      console.error('Error fetching bookings:', error);
-    } else {
-      setBookedSlots(data || []);
+    try {
+      const res = await fetch(`${API_BASE}/api/bookings`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to fetch bookings');
+      setBookedSlots(json.data || []);
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
     }
   };
 
@@ -111,42 +90,39 @@ export const SessionBooking = () => {
 
     setIsSubmitting(true);
 
-    const { error } = await supabase.from('bookings').insert({
-      name,
-      contact,
-      booking_date: format(selectedDate, 'yyyy-MM-dd'),
-      booking_time: selectedTime,
-    });
-
-    setIsSubmitting(false);
-
-    if (error) {
-      if (error.code === '23505') {
-        toast({
-          title: 'Slot Already Taken',
-          description: 'This time slot was just booked by someone else. Please select another.',
-          variant: 'destructive',
-        });
-        fetchBookings();
-      } else {
-        toast({
-          title: 'Booking Failed',
-          description: 'An error occurred while booking your session. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    } else {
-      toast({
-        title: 'Session Booked!',
-        description: `Your session on ${format(selectedDate, 'PPP')} at ${selectedTime} has been confirmed. More details will be sent to ${contact}.`,
+    try {
+      const res = await fetch(`${API_BASE}/api/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          contact,
+          booking_date: format(selectedDate, 'yyyy-MM-dd'),
+          booking_time: selectedTime,
+          email: contact,
+        }),
       });
-
-      // Reset form
-      setSelectedDate(undefined);
-      setSelectedTime('');
-      setName('');
-      setContact('');
-      fetchBookings();
+      const json = await res.json();
+      setIsSubmitting(false);
+      if (!res.ok) {
+        if (res.status === 409) {
+          toast({ title: 'Slot Already Taken', description: 'This time slot was just booked by someone else. Please select another.', variant: 'destructive' });
+          fetchBookings();
+        } else {
+          throw new Error(json.error || 'Booking failed');
+        }
+      } else {
+        toast({ title: 'Session Booked!', description: `Your session on ${format(selectedDate, 'PPP')} at ${selectedTime} has been confirmed. More details will be sent to ${contact}.` });
+        setSelectedDate(undefined);
+        setSelectedTime('');
+        setName('');
+        setContact('');
+        fetchBookings();
+      }
+    } catch (err) {
+      setIsSubmitting(false);
+      console.error('Booking error', err);
+      toast({ title: 'Booking Failed', description: 'An error occurred while booking your session. Please try again.', variant: 'destructive' });
     }
   };
 

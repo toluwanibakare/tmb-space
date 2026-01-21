@@ -9,7 +9,8 @@ import { Mail, Phone, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { SessionBooking } from '@/components/SessionBooking';
-import { supabase } from '@/integrations/supabase/client';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const Contact = () => {
   const { toast } = useToast();
@@ -23,6 +24,7 @@ const Contact = () => {
     services: '',
     message: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,11 +38,12 @@ const Contact = () => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      // Submit to database
-      const { error } = await supabase
-        .from('contact_submissions')
-        .insert([{
+      const res = await fetch(`${API_BASE}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
@@ -49,37 +52,26 @@ const Contact = () => {
           goals: formData.goals,
           services: formData.services,
           message: formData.message,
-        }]);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Message Sent!',
-        description: 'Thank you for reaching out. I will get back to you soon.',
+        }),
       });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Submission failed');
+
+      toast({ title: 'Message Sent!', description: 'Thank you for reaching out. I will get back to you soon.' });
 
       // Open WhatsApp
       const whatsappUrl = `https://wa.me/${formData.whatsapp.replace(/\D/g, '')}`;
       window.open(whatsappUrl, '_blank');
 
       // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        whatsapp: '',
-        brandAbout: '',
-        goals: '',
-        services: '',
-        message: '',
-      });
+      setFormData({ name: '', email: '', phone: '', whatsapp: '', brandAbout: '', goals: '', services: '', message: '' });
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to submit form. Please try again.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Failed to submit form. Please try again.', variant: 'destructive' });
+    }
+    finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -286,8 +278,8 @@ const Contact = () => {
                 />
               </div>
 
-              <Button type="submit" size="lg" className="w-full glow-ring">
-                Send Message
+              <Button type="submit" size="lg" className="w-full glow-ring" disabled={isSubmitting}>
+                {isSubmitting ? 'Sending...' : 'Send Message'}
               </Button>
             </form>
           </Card>

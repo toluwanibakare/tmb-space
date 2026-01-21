@@ -6,7 +6,8 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 import { LogOut, Calendar, MessageSquare, Users, Star, Trash2 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -24,27 +25,8 @@ const AdminDashboard = () => {
   }, []);
 
   const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      navigate('/admin/login');
-      return;
-    }
-
-    const { data: roleData, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
-
-    if (error || !roleData) {
-      toast({
-        title: 'Unauthorized',
-        description: 'You do not have admin access',
-        variant: 'destructive',
-      });
-      await supabase.auth.signOut();
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
       navigate('/admin/login');
     }
   };
@@ -52,17 +34,31 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
+      const token = localStorage.getItem('admin_token');
+      const headers = token ? { 'x-admin-token': token } : {};
       const [bookingsRes, contactsRes, newslettersRes, reviewsRes] = await Promise.all([
-        supabase.from('bookings').select('*').order('created_at', { ascending: false }),
-        supabase.from('contact_submissions').select('*').order('submitted_at', { ascending: false }),
-        supabase.from('newsletter_subscriptions').select('*').order('subscribed_at', { ascending: false }),
-        supabase.from('reviews').select('*').order('created_at', { ascending: false }),
+        fetch(`${API_BASE}/api/admin/bookings`, { headers }),
+        fetch(`${API_BASE}/api/admin/contacts`, { headers }),
+        fetch(`${API_BASE}/api/admin/newsletter`, { headers }),
+        fetch(`${API_BASE}/api/admin/reviews`, { headers }),
       ]);
 
-      if (bookingsRes.data) setBookings(bookingsRes.data);
-      if (contactsRes.data) setContacts(contactsRes.data);
-      if (newslettersRes.data) setNewsletters(newslettersRes.data);
-      if (reviewsRes.data) setReviews(reviewsRes.data);
+      const [bookingsJson, contactsJson, newslettersJson, reviewsJson] = await Promise.all([
+        bookingsRes.json(),
+        contactsRes.json(),
+        newslettersRes.json(),
+        reviewsRes.json(),
+      ]);
+
+      if (!bookingsRes.ok) throw new Error(bookingsJson.error || 'Failed to load');
+      if (!contactsRes.ok) throw new Error(contactsJson.error || 'Failed to load');
+      if (!newslettersRes.ok) throw new Error(newslettersJson.error || 'Failed to load');
+      if (!reviewsRes.ok) throw new Error(reviewsJson.error || 'Failed to load');
+
+      setBookings(bookingsJson.data || []);
+      setContacts(contactsJson.data || []);
+      setNewsletters(newslettersJson.data || []);
+      setReviews(reviewsJson.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -76,7 +72,7 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem('admin_token');
     navigate('/admin/login');
   };
 
@@ -87,8 +83,9 @@ const AdminDashboard = () => {
 
   const deleteReview = async (id: string) => {
     try {
-      const { error } = await supabase.from('reviews').delete().eq('id', id);
-      if (error) throw error;
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${API_BASE}/api/reviews/${id}`, { method: 'DELETE', headers: token ? { 'x-admin-token': token } : {} });
+      if (!res.ok) throw new Error('Delete failed');
       setReviews(reviews.filter(r => r.id !== id));
       toast({ title: 'Deleted', description: 'Review has been removed' });
     } catch (error: any) {

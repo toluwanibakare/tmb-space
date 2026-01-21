@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 import { Lock } from 'lucide-react';
 
 const AdminLogin = () => {
@@ -17,12 +18,9 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate('/admin/dashboard');
-      }
-    });
+    // If admin token exists, redirect to dashboard
+    const token = localStorage.getItem('admin_token');
+    if (token) navigate('/admin/dashboard');
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,31 +28,17 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // simple admin login against backend ADMIN_SECRET
+      const res = await fetch(`${API_BASE}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
       });
-
-      if (error) throw error;
-
-      // Check if user has admin role
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user.id)
-        .eq('role', 'admin')
-        .single();
-
-      if (roleError || !roleData) {
-        await supabase.auth.signOut();
-        throw new Error('Unauthorized: Admin access required');
-      }
-
-      toast({
-        title: 'Welcome!',
-        description: 'Successfully logged in',
-      });
-
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Invalid credentials');
+      // store token
+      localStorage.setItem('admin_token', json.token);
+      toast({ title: 'Welcome!', description: 'Successfully logged in' });
       navigate('/admin/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);

@@ -30,7 +30,7 @@ const socials = [
   { 
     name: 'X', 
     icon: XIcon, 
-    url: 'https://x.com/official_tmb01',
+    url: 'https://x.com/0xtmb',
     color: 'bg-white text-black dark:bg-black dark:text-white'
   },
   { 
@@ -42,7 +42,7 @@ const socials = [
   { 
     name: 'GitHub', 
     icon: FaGithub, 
-    url: 'https://github.com/tmb101tech',
+    url: 'https://github.com/toluwanibakare',
     color: 'bg-gray-800 dark:bg-gray-700'
   },
   { 

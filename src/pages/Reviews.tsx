@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Star, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 import { cn } from '@/lib/utils';
 
 interface Review {
@@ -47,13 +48,10 @@ const Reviews = () => {
   const fetchReviews = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('reviews' as any)
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setReviews((data as unknown as Review[]) || []);
+      const res = await fetch(`${API_BASE}/api/reviews`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to fetch reviews');
+      setReviews(json.data || []);
     } catch (error) {
       console.error('Error fetching reviews:', error);
       toast({
@@ -100,11 +98,13 @@ const Reviews = () => {
         role: formData.role.trim() || null,
       };
 
-      const { error } = await supabase
-        .from('reviews' as any)
-        .insert([reviewData]);
-
-      if (error) throw error;
+      const res = await fetch(`${API_BASE}/api/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewData),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to submit review');
 
       toast({
         title: 'Review Submitted!',

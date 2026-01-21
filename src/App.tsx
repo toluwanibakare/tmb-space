@@ -9,6 +9,8 @@ import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { useState } from "react";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -41,19 +43,26 @@ const Layout = () => (
   </div>
 );
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <CustomCursor />
-        <BrowserRouter>
-          <Layout />
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [showLoading, setShowLoading] = useState(true);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <CustomCursor />
+          {showLoading && (
+            <LoadingScreen onLoadingComplete={() => setShowLoading(false)} />
+          )}
+          <BrowserRouter>
+            <Layout />
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

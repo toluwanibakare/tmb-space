@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export const NewsletterForm = () => {
   const [email, setEmail] = useState('');
@@ -22,35 +23,26 @@ export const NewsletterForm = () => {
     }
 
     setIsSubmitting(true);
-
     try {
-      const { error } = await supabase
-        .from('newsletter_subscriptions')
-        .insert([{ email }]);
-
-      if (error) {
-        if (error.code === '23505') {
-          toast({
-            title: 'Already Subscribed',
-            description: 'This email is already subscribed to our newsletter',
-          });
+      const res = await fetch(`${API_BASE}/api/newsletter`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        if (res.status === 409) {
+          toast({ title: 'Already Subscribed', description: 'This email is already subscribed to our newsletter' });
         } else {
-          throw error;
+          throw new Error(json.error || 'Subscribe failed');
         }
       } else {
-        toast({
-          title: 'Subscribed!',
-          description: 'Thank you for subscribing to our newsletter',
-        });
+        toast({ title: 'Subscribed!', description: 'Thank you for subscribing to our newsletter' });
         setEmail('');
       }
     } catch (error) {
       console.error('Error subscribing:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to subscribe. Please try again.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Failed to subscribe. Please try again.', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }

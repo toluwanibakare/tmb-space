@@ -13,7 +13,7 @@ import { FAQ } from '@/components/FAQ';
 import { SocialFollowPopup } from '@/components/SocialFollowPopup';
 import { ResumeViewer } from '@/components/ResumeViewer';
 import { ArrowRight, Code, Instagram, Mail, Download, Eye, Star, User } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 import heroPortrait from '@/assets/hero-portrait.jpeg';
 import resumePdf from '@/assets/Updated resume.pdf';
 import { useState, useEffect } from 'react';
@@ -33,17 +33,16 @@ interface Review {
 const Index = () => {
   const { toast } = useToast();
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
 
   useEffect(() => {
     const fetchRecentReviews = async () => {
-      const { data, error } = await supabase
-        .from('reviews' as any)
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(3);
-      
-      if (!error && data) {
-        setRecentReviews(data as unknown as Review[]);
+      try {
+        const res = await fetch(`${API_BASE}/api/reviews?limit=3`);
+        const json = await res.json();
+        if (res.ok) setRecentReviews(json.data || []);
+      } catch (err) {
+        console.error('Failed to fetch recent reviews', err);
       }
     };
     fetchRecentReviews();
@@ -438,14 +437,22 @@ const Index = () => {
                 return;
               }
 
+              setNewsletterLoading(true);
               try {
-                const { data, error } = await (supabase as any).from('subscribers').insert([{ email }]).select();
-                if (error) throw error;
+                const res = await fetch(`${API_BASE}/api/newsletter`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email }),
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.error || 'Subscription failed');
                 toast({ title: 'Subscribed', description: 'Thanks — you have been added to the list!' });
                 (e.currentTarget.elements[0] as HTMLInputElement).value = '';
               } catch (err: any) {
                 console.error(err);
                 toast({ title: 'Subscription failed', description: err.message || 'Please try again later', variant: 'destructive' });
+              } finally {
+                setNewsletterLoading(false);
               }
             }}
           >
@@ -456,8 +463,8 @@ const Index = () => {
               required
               name="newsletterEmail"
             />
-            <Button type="submit" size="lg" className="glow-ring">
-              Subscribe
+            <Button type="submit" size="lg" className="glow-ring" disabled={newsletterLoading}>
+              {newsletterLoading ? 'Subscribing...' : 'Subscribe'}
             </Button>
           </form>
           <p className="text-xs text-muted-foreground mt-4">

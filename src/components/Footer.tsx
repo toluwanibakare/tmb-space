@@ -8,7 +8,7 @@ export const Footer = () => {
         <div className="flex flex-col items-center gap-6">
           <div className="flex flex-wrap gap-3 md:gap-4 mb-2 justify-center max-w-lg">
             <a
-              href="https://github.com/tmb101tech"
+              href="https://github.com/toluwanibakare"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 md:p-3 rounded-full border border-border hover:border-primary hover:glow-ring transition-smooth"
@@ -24,7 +24,7 @@ export const Footer = () => {
               <Linkedin size={18} className="md:w-5 md:h-5" />
             </a>
             <a
-              href="https://x.com/official_tmb01"
+              href="https://x.com/0xtmb"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 md:p-3 rounded-full border border-border hover:border-primary hover:glow-ring transition-smooth"
